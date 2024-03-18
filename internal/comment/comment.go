@@ -7,16 +7,19 @@ import (
 )
 
 var (
-	ErrFetching     = errors.New("cannot fetching a comment by id")
+	ErrFetching       = errors.New("cannot fetching a comment by id")
 	ErrNotImplemented = errors.New("not implemented")
 )
 
 type Store interface {
 	GetComment(ctx context.Context, id string) (Comment, error)
+	PostComment(ctx context.Context, comment Comment) (Comment, error)
+	UpdateComment(ctx context.Context, id string, comment Comment) (Comment, error)
+	DeleteComment(ctx context.Context, id string) error
 }
 
 type Comment struct {
-	ID     uint
+	ID     string
 	Slug   string
 	Body   string
 	Author string
@@ -31,24 +34,41 @@ func NewService(store Store) *Service {
 }
 
 func (s *Service) GetComment(ctx context.Context, id string) (Comment, error) {
-	fmt.Println("retrieving a comment")
-	cmt, err := s.Store.GetComment(ctx, id)
+	fmt.Println("Retrieving a comment")
+
+	comment, err := s.Store.GetComment(ctx, id)
 	if err != nil {
 		fmt.Println(err)
 		return Comment{}, ErrFetching
 	}
+	return comment, nil
+}
 
+func (s *Service) UpdateComment(ctx context.Context, ID string, updatedCmt Comment) (Comment, error) {
+
+	cmt, err := s.Store.UpdateComment(ctx, ID, updatedCmt)
+	if err != nil {
+		fmt.Println("error updating comment")
+		return Comment{}, err
+	}
+
+	return cmt, nil
+
+}
+
+func (s *Service) PostComment(ctx context.Context, comment Comment) (Comment, error) {
+	cmt, err := s.Store.PostComment(ctx, comment)
+	if err != nil {
+		return Comment{}, fmt.Errorf("error to post comment: %w", err)
+	}
 	return cmt, nil
 }
 
-func (s *Service) UpdateComment(ctx context.Context, comment Comment) error {
-	return ErrNotImplemented
-}
+func (s *Service) DeleteComment(ctx context.Context, id string) error {
 
-func (s *Service) CreateComment(ctx context.Context,comment Comment) (Comment,error)  {
-	return Comment{},ErrNotImplemented
-}
-
-func (s *Service) DeleteComment(ctx context.Context,id string) error {
-	return ErrNotImplemented
+	err := s.Store.DeleteComment(ctx, id)
+	if err != nil {
+		return ErrNotImplemented
+	}
+	return nil
 }
