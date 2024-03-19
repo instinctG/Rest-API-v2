@@ -27,11 +27,6 @@ func convertCommentRowToComment(c CommentRow) comment.Comment {
 func (d *Database) GetComment(ctx context.Context, uuid string) (comment.Comment, error) {
 	var cmtRow CommentRow
 
-	_, err := d.Client.ExecContext(ctx, `SELECT pg_sleep(16)`)
-	if err != nil {
-		return comment.Comment{}, err
-	}
-
 	row := d.Client.QueryRowContext(
 		ctx,
 		`SELECT id, slug, body, author 
@@ -39,7 +34,7 @@ func (d *Database) GetComment(ctx context.Context, uuid string) (comment.Comment
 		WHERE id = $1`,
 		uuid,
 	)
-	err = row.Scan(&cmtRow.ID, &cmtRow.Slug, &cmtRow.Body, &cmtRow.Author)
+	err := row.Scan(&cmtRow.ID, &cmtRow.Slug, &cmtRow.Body, &cmtRow.Author)
 	if err != nil {
 		return comment.Comment{}, fmt.Errorf("error in fething a comment by id: %w", err)
 	}
